@@ -1,0 +1,105 @@
+import React, { useState, useEffect } from 'react';
+import { loadClassesFromStorage, saveClassesToStorage, loadTeacherClasses, saveTeacherClasses } from './utils';
+import './Teacher.css';
+
+function Teacher() {
+    const [loggedIn, setLoggedIn] = useState(false);
+    const [classes, setClasses] = useState([]);
+    const [teacherId, setTeacherId] = useState('teacher1'); // static for simplicity
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        if (loggedIn) {
+            const allClasses = loadClassesFromStorage();
+            const myClasses = allClasses.filter(cls => cls.teacherId === teacherId);
+            setClasses(myClasses);
+            setLoading(false);
+        }
+    }, [loggedIn, teacherId]);
+
+    const handleGradeChange = (classId, studentId, newGrade) => {
+        const updatedClasses = classes.map(cls => {
+            if (cls.id === classId) {
+                const updatedStudents = cls.enrolledStudents.map(student =>
+                    student.id === studentId ? { ...student, grade: newGrade } : student
+                );
+                return { ...cls, enrolledStudents: updatedStudents };
+            }
+            return cls;
+        });
+
+        setClasses(updatedClasses);
+
+        // Update main classes in storage
+        const allClasses = loadClassesFromStorage();
+        const updatedAllClasses = allClasses.map(cls => {
+            if (cls.id === classId) {
+                const updatedStudents = cls.enrolledStudents.map(student =>
+                    student.id === studentId ? { ...student, grade: newGrade } : student
+                );
+                return { ...cls, enrolledStudents: updatedStudents };
+            }
+            return cls;
+        });
+
+        saveClassesToStorage(updatedAllClasses);
+        alert(`Updated grade for Student ${studentId} in Class ${classId}.`);
+    };
+
+    const renderClassTable = () => {
+        return classes.map(cls => (
+            <div key={cls.id} className="class-box">
+                <h3>{cls.name} (ID: {cls.id})</h3>
+                {cls.enrolledStudents && cls.enrolledStudents.length > 0 ? (
+                    <table className="grade-table">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Grade</th>
+                                <th>Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {cls.enrolledStudents.map(student => (
+                                <tr key={student.id}>
+                                    <td>{student.id}</td>
+                                    <td>{student.grade ?? 'N/A'}</td>
+                                    <td>
+                                        <input
+                                            type="text"
+                                            defaultValue={student.grade}
+                                            onBlur={(e) => handleGradeChange(cls.id, student.id, e.target.value)}
+                                            placeholder="Enter grade"
+                                        />
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                ) : (
+                    <p>No students enrolled.</p>
+                )}
+            </div>
+        ));
+    };
+
+    return (
+        <div>
+            <h1>Teacher Dashboard</h1>
+            {!loggedIn ? (
+                <button onClick={() => setLoggedIn(true)} className="login-button">Log In as Teacher</button>
+            ) : (
+                <div>
+                    <button onClick={() => { setLoggedIn(false); setClasses([]); setLoading(true); }} className="logout-button">Log Out</button>
+                    <h2>My Classes</h2>
+                    {loading ? <p>Loading classes...</p> : renderClassTable()}
+                    <p style={{ fontSize: '0.9em', textAlign: 'center', marginTop: '15px' }}>
+                        Click on a grade cell to edit. Changes save on blur.
+                    </p>
+                </div>
+            )}
+        </div>
+    );
+}
+
+export default Teacher;

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Teacher Portal</title>
+    <link rel="stylesheet" href="Teacher.css">
+</head>
+<body>
+    <div id="auth-area">
+        <h1>Teacher Login</h1>
+        <button id="login-button" class="login-button">Log In as Teacher</button>
+    </div>
+
+    <div id="dashboard-area" style="display: none;">
+        <h1>Teacher Dashboard</h1>
+        <button id="logout-button" class="logout-button">Log Out</button>
+        <h2>My Classes</h2>
+        <div id="teacher-classes"></div>
+        <p style="text-align:center; font-size:0.9em; margin-top:15px;">
+            Edit a grade and click outside the box to save.
+        </p>
+    </div>
+
+    <script src="Teacher_script.js"></script>
+</body>
+</html>
